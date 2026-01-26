@@ -19,9 +19,11 @@
     ; ------------------------------------------
     ; Show input box to get file name from user
     ; ------------------------------------------
-    InputBox, userInput, Create File, Enter file name (example: hello.js or hello.js -e)
-    if ErrorLevel  ; User pressed Cancel
+    result := InputBox("Enter file name (example: hello.js or hello.js -e)", "Create File")
+    if result.Result = "Cancel"  ; User pressed Cancel
         return
+    
+    userInput := result.Value
 
     ; ------------------------------------------
     ; Check for '-e' flag to open in editor
@@ -30,25 +32,44 @@
     if InStr(userInput, " -e")
     {
         openEditor := true
-        StringReplace, userInput, userInput,  -e,, All  ; Remove the flag from file name
+        userInput := StrReplace(userInput, " -e", "")  ; Remove the flag from file name
     }
 
     ; ------------------------------------------
-    ; Get current folder path from File Explorer
+    ; Get current folder path from File Explorer (Active Tab)
     ; ------------------------------------------
-    folderPath := ""
-    for window in ComObjCreate("Shell.Application").Windows
-    {
-        if (window.hwnd = WinActive("A"))
-        {
-            folderPath := window.Document.Folder.Self.Path
-            break
-        }
-    }
-
+    ; Save current clipboard
+    clipboardBackup := A_Clipboard
+    A_Clipboard := ""
+    
+    ; Focus address bar and copy path
+    Send("!d")  ; Alt+D to focus address bar
+    Sleep(100)
+    Send("^c")  ; Ctrl+C to copy path
+    Sleep(100)
+    
+    ; Get the path from clipboard
+    folderPath := A_Clipboard
+    
+    ; Restore clipboard
+    A_Clipboard := clipboardBackup
+    
+    ; Refocus the file list area
+    Send("{Escape}")
+    
     if (folderPath = "")
     {
-        MsgBox, Could not determine current folder path.
+        MsgBox("Could not get folder path!`n`nMake sure you're in File Explorer.")
+        return
+    }
+
+    ; ------------------------------------------
+    ; Validate and clean file name
+    ; ------------------------------------------
+    userInput := Trim(userInput)
+    if (userInput = "")
+    {
+        MsgBox("File name cannot be empty!")
         return
     }
 
@@ -62,14 +83,22 @@
     ; ------------------------------------------
     if FileExist(filePath)
     {
-        MsgBox, File already exists!
+        MsgBox("File already exists!")
         return
     }
 
     ; ------------------------------------------
     ; Create the empty file
     ; ------------------------------------------
-    FileAppend,, %filePath%
+    try
+    {
+        FileAppend("", filePath)
+    }
+    catch as err
+    {
+        MsgBox("Error creating file: " err.Message "`n`nPath: " filePath)
+        return
+    }
 
     ; ------------------------------------------
     ; If '-e' flag was used, open the file in editor
@@ -84,7 +113,6 @@
         ; editorPath := "C:\Program Files\Notepad++\notepad++.exe"
         ; ============================
         editorPath := "C:\Users\abpra\AppData\Local\Programs\Microsoft VS Code\Code.exe"
-        Run, "%editorPath%" "%filePath%"
+        Run('"' editorPath '" "' filePath '"')
     }
 }
-return
