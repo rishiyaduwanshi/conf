@@ -40,6 +40,23 @@ GetActiveTabExplorerPath() {
         Send("^+c")
         return
     }
-    Run(systemRoot . "\System32\WindowsPowerShell\v1.0\powershell.exe", currentPath)
+    Run("pwsh", currentPath)
 
+}
+
+!v:: {
+    winClass := WinGetClass("A")
+    systemRoot := EnvGet("SystemRoot")
+    userProfile := EnvGet("USERPROFILE")
+    currentPath := userProfile
+
+    if (winClass == "CabinetWClass") {
+        currentPath := GetActiveTabExplorerPath()
+    } else if (winClass = 'progman') {
+        currentPath := A_Desktop
+    } else if (WinGetProcessName("A") = "code.exe") {
+        Send("^+c")
+        return
+    }
+    Run('"C:\Users\abpra\AppData\Local\Programs\Microsoft VS Code\Code.exe" "' currentPath '"')
 }
