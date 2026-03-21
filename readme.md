@@ -22,4 +22,21 @@ git clone https://github.com/rishiyaduwanshi/conf.git
 
 Use, modify, or add new scripts and configs as you want - **do whatever you like according to your needs**.
 
+You can also download and use scripts through **Boiler**.
+If you are not familiar with Boiler, visit **https://boiler.iamabhinav.dev** to learn more.
+
+### Download with Boiler
+
+You can directly download and add the full stack:
+
+```bash
+bl add github.com:rishiyaduwanshi/conf . -rk
+```
+
+If you only want one particular script, you can download that too:
+
+```bash
+bl add github.com:rishiyaduwanshi/conf/scripts/createFile.ahk . -rn
+```
+
 ---
